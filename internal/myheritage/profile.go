@@ -8,16 +8,16 @@ import (
 	"net/http"
 )
 
-type FamilyTree struct {
+type Profile struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
-func CreateFamilyTree(apiKey, name, description string) (string, error) {
+func CreateProfile(apiKey, name, description string) (string, error) {
 	url := "https://api.myheritage.com/family-trees" // Replace with actual MyHeritage API endpoint
 
-	familyTree := FamilyTree{
+	familyTree := Profile{
 		Name:        name,
 		Description: description,
 	}
@@ -47,7 +47,7 @@ func CreateFamilyTree(apiKey, name, description string) (string, error) {
 		return "", err
 	}
 
-	var createdFamilyTree FamilyTree
+	var createdFamilyTree Profile
 	err = json.Unmarshal(body, &createdFamilyTree)
 	if err != nil {
 		return "", err
@@ -56,8 +56,7 @@ func CreateFamilyTree(apiKey, name, description string) (string, error) {
 	return createdFamilyTree.ID, nil
 }
 
-// GetFamilyTree fetches the details of a family tree from MyHeritage API
-func GetFamilyTree(apiKey, familyTreeID string) (*FamilyTree, error) {
+func GetProfile(apiKey, familyTreeID string) (*Profile, error) {
 	url := fmt.Sprintf("https://api.myheritage.com/family-trees/%s", familyTreeID) // Replace with the actual MyHeritage API endpoint
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -83,7 +82,7 @@ func GetFamilyTree(apiKey, familyTreeID string) (*FamilyTree, error) {
 		return nil, err
 	}
 
-	var familyTree FamilyTree
+	var familyTree Profile
 	err = json.Unmarshal(body, &familyTree)
 	if err != nil {
 		return nil, err
@@ -92,10 +91,10 @@ func GetFamilyTree(apiKey, familyTreeID string) (*FamilyTree, error) {
 	return &familyTree, nil
 }
 
-func UpdateFamilyTree(apiKey, familyTreeID, name, description string) error {
+func UpdateProfile(apiKey, familyTreeID, name, description string) error {
 	url := fmt.Sprintf("https://api.myheritage.com/family-trees/%s", familyTreeID) // Replace with actual MyHeritage API endpoint
 
-	familyTree := FamilyTree{
+	familyTree := Profile{
 		Name:        name,
 		Description: description,
 	}
@@ -127,7 +126,7 @@ func UpdateFamilyTree(apiKey, familyTreeID, name, description string) error {
 	return nil
 }
 
-func DeleteFamilyTree(apiKey, familyTreeID string) error {
+func DeleteProfile(apiKey, familyTreeID string) error {
 	url := fmt.Sprintf("https://api.myheritage.com/family-trees/%s", familyTreeID) // Replace with actual MyHeritage API endpoint
 
 	req, err := http.NewRequest("DELETE", url, nil)

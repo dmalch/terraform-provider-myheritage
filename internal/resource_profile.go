@@ -11,10 +11,10 @@ import (
 
 func resourceFamilyTree() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceFamilyTreeCreate,
-		ReadContext:   resourceFamilyTreeRead,
-		UpdateContext: resourceFamilyTreeUpdate,
-		DeleteContext: resourceFamilyTreeDelete,
+		CreateContext: resourceProfileCreate,
+		ReadContext:   resourceProfileRead,
+		UpdateContext: resourceProfileUpdate,
+		DeleteContext: resourceProfileDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -28,7 +28,7 @@ func resourceFamilyTree() *schema.Resource {
 	}
 }
 
-func resourceFamilyTreeCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProfileCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	name := d.Get("name").(string)
@@ -37,7 +37,7 @@ func resourceFamilyTreeCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	// Call MyHeritage API to create the family tree
 	// Assume you have a function createFamilyTree that interacts with the API
-	familyTreeID, err := myheritage.CreateFamilyTree(apiKey, name, description)
+	familyTreeID, err := myheritage.CreateProfile(apiKey, name, description)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -47,7 +47,7 @@ func resourceFamilyTreeCreate(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func resourceFamilyTreeRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProfileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	familyTreeID := d.Id()
@@ -55,7 +55,7 @@ func resourceFamilyTreeRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	// Call MyHeritage API to read the family tree
 	// Assume you have a function getFamilyTree that interacts with the API
-	familyTree, err := myheritage.GetFamilyTree(apiKey, familyTreeID)
+	familyTree, err := myheritage.GetProfile(apiKey, familyTreeID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -66,7 +66,7 @@ func resourceFamilyTreeRead(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func resourceFamilyTreeUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProfileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	familyTreeID := d.Id()
@@ -76,7 +76,7 @@ func resourceFamilyTreeUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 	// Call MyHeritage API to update the family tree
 	// Assume you have a function updateFamilyTree that interacts with the API
-	err := myheritage.UpdateFamilyTree(apiKey, familyTreeID, name, description)
+	err := myheritage.UpdateProfile(apiKey, familyTreeID, name, description)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -84,7 +84,7 @@ func resourceFamilyTreeUpdate(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func resourceFamilyTreeDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	familyTreeID := d.Id()
@@ -92,7 +92,7 @@ func resourceFamilyTreeDelete(ctx context.Context, d *schema.ResourceData, m int
 
 	// Call MyHeritage API to delete the family tree
 	// Assume you have a function deleteFamilyTree that interacts with the API
-	err := myheritage.DeleteFamilyTree(apiKey, familyTreeID)
+	err := myheritage.DeleteProfile(apiKey, familyTreeID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
