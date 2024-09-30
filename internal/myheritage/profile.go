@@ -4,148 +4,85 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log/slog"
+	"mime/multipart"
 	"net/http"
 )
 
 type Profile struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Data map[string]any `json:"data"`
 }
 
 func CreateProfile(apiKey, name, description string) (string, error) {
-	url := "https://api.myheritage.com/family-trees" // Replace with actual MyHeritage API endpoint
-
-	familyTree := Profile{
-		Name:        name,
-		Description: description,
-	}
-
-	jsonBody, err := json.Marshal(familyTree)
-	if err != nil {
-		return "", err
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey) // Replace with actual API key
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var createdFamilyTree Profile
-	err = json.Unmarshal(body, &createdFamilyTree)
-	if err != nil {
-		return "", err
-	}
-
-	return createdFamilyTree.ID, nil
+	return "", nil
 }
 
-func GetProfile(apiKey, familyTreeID string) (*Profile, error) {
-	url := fmt.Sprintf("https://api.myheritage.com/family-trees/%s", familyTreeID) // Replace with the actual MyHeritage API endpoint
+const profileHeaderUrl = "https://familygraphql.myheritage.com/profile_header_data/"
 
-	req, err := http.NewRequest("GET", url, nil)
+func GetProfile(apiKey, familyTreeID string) (*Profile, error) {
+	// Create a buffer to hold the multipart form-data
+	var payload bytes.Buffer
+	writer := multipart.NewWriter(&payload)
+
+	_ = writer.WriteField("bearer_token", "4.179c5e5ca6da13642b272fa8e8e7b614.1063319581.1727735294.1440.35509924739..zke0kepi.1765354d17928f08f45629e64f1888e111ffba5a3dac9025a0d751a354d68c3d")
+	_ = writer.WriteField("query", `"{profile(id:\"profile-760079151-1500318-0\",lang:\"EN\"){name first_name last_name gender age_group age{text}personal_photo{...personal_photo_fragment}is_prefer_user can_current_user_view_discoveries can_current_user_manage_photos can_current_user_edit_personal_photo can_current_user_invite_individual tabs{name total counters}recent_individuals{data{...history_fragment}}favorite_individuals{data{...history_fragment}}individual{...individual_fragment}user{...user_fragment}site_membership{member_id site_id can_user_contact_member member_joined_date member_last_visit_date role_sentence{text}}tree{is_imported_using_family_search_sync}site{name}}}fragment history_fragment on Individual{id name gender age_group lifespan personal_photo{...personal_photo_fragment}tree_relationship{description}link_in_profile_page}fragment individual_fragment on Individual{id name first_name gender personal_photo{...personal_photo_fragment}is_privatized religious_name former_name namesake alternate_names birth_date{text}birth_place death_date{text}is_alive is_likely_deceased death_place burial_place cause_of_death is_cause_of_death_holocaust age{text}tree_relationship{description is_blood_relative is_biological_blood_relative blood_relative_description hour_glass_color_code is_path_to_self is_path_cannot_decide_if_related}can_edit link_in_tree link_in_pedigree_tree link_in_fan_view link_in_research_this_person link_template_in_edit_profile}fragment personal_photo_fragment on Photo{thumbnails(thumbnail_size:\"136x136c\"){profileHeaderUrl}}fragment user_fragment on User{name first_name crown_status country country_code birth_date{text}age{text}age_group_in_years show_age is_public is_privatized nickname created_time}"`)
+	_ = writer.WriteField("operation", "")
+	_ = writer.WriteField("variables", "")
+	_ = writer.WriteField("description", "profile header data")
+	_ = writer.WriteField("mhc#PHPSESSID", "dc6dc7fd0731301885dff98bd5674494")
+
+	// Close the writer to finalize the multipart form-data
+	err := writer.Close()
 	if err != nil {
+		slog.Error("Error closing writer", "error", err)
 		return nil, err
 	}
-
-	req.Header.Set("Authorization", "Bearer "+apiKey) // Replace with actual API key
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	req, err := http.NewRequest("POST", profileHeaderUrl, &payload)
+
 	if err != nil {
+		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
-	defer resp.Body.Close()
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", writer.FormDataContentType())
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get family tree: %s", resp.Status)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
+	res, err := client.Do(req)
 	if err != nil {
+		slog.Error("Error sending request", "error", err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		slog.Error("Error reading response", "error", err)
 		return nil, err
 	}
 
-	var familyTree Profile
-	err = json.Unmarshal(body, &familyTree)
+	slog.Info("Response body", "body", string(body))
+
+	if res.StatusCode != http.StatusOK {
+		slog.Error("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
+		return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
+	}
+
+	var profile Profile
+	err = json.Unmarshal(body, &profile)
 	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
 		return nil, err
 	}
 
-	return &familyTree, nil
+	return &profile, nil
 }
 
 func UpdateProfile(apiKey, familyTreeID, name, description string) error {
-	url := fmt.Sprintf("https://api.myheritage.com/family-trees/%s", familyTreeID) // Replace with actual MyHeritage API endpoint
-
-	familyTree := Profile{
-		Name:        name,
-		Description: description,
-	}
-
-	jsonBody, err := json.Marshal(familyTree)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey) // Replace with actual API key
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to update family tree: %s", resp.Status)
-	}
-
 	return nil
 }
 
 func DeleteProfile(apiKey, familyTreeID string) error {
-	url := fmt.Sprintf("https://api.myheritage.com/family-trees/%s", familyTreeID) // Replace with actual MyHeritage API endpoint
-
-	req, err := http.NewRequest("DELETE", url, nil)
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Authorization", "Bearer "+apiKey) // Replace with actual API key
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to delete family tree: %s", resp.Status)
-	}
-
 	return nil
 }
