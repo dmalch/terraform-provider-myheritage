@@ -1,1 +1,1 @@
-# myheritage-terraform-provider
+# terraform-provider-myheritage
