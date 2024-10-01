@@ -9,7 +9,7 @@ import (
 	"github.com/dmalch/terraform-provider-myheritage/internal/myheritage"
 )
 
-func resourceFamilyTree() *schema.Resource {
+func resourceProfile() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceProfileCreate,
 		ReadContext:   resourceProfileRead,
@@ -19,10 +19,6 @@ func resourceFamilyTree() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 		},
 	}
