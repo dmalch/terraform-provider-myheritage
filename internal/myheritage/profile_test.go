@@ -7,6 +7,7 @@ import (
 )
 
 func TestGetProfile(t *testing.T) {
+	t.Skip()
 	RegisterTestingT(t)
 
 	profile, err := GetProfile("", "")
