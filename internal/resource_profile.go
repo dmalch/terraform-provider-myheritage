@@ -19,9 +19,37 @@ func resourceProfile() *schema.Resource {
 			StateContext: resourceProfileImport,
 		},
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"first_name": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"last_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"birth_date": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"birth_place": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"death_date": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"death_place": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"cause_of_death": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"gender": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -70,15 +98,15 @@ func retrieveProfile(apiKey string, profileID string, d *schema.ResourceData) (*
 		return nil, err
 	}
 
-	if err := d.Set("first_name", profile.FirstName); err != nil {
+	if err := d.Set("last_name", profile.LastName); err != nil {
 		return nil, err
 	}
 
-	if err := d.Set("birth_date", profile.Individual.BirthDate); err != nil {
+	if err := d.Set("birth_date", profile.Individual.BirthDate.Text); err != nil {
 		return nil, err
 	}
 
-	if err := d.Set("death_date", profile.Individual.DeathDate); err != nil {
+	if err := d.Set("death_date", profile.Individual.DeathDate.Text); err != nil {
 		return nil, err
 	}
 
