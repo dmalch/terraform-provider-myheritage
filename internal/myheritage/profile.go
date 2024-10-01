@@ -20,13 +20,26 @@ type ProfileData struct {
 }
 
 type Profile struct {
-	Name      string `json:"name"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Gender    string `json:"gender"`
-	Age       struct {
+	FirstName  string     `json:"first_name"`
+	LastName   string     `json:"last_name"`
+	Individual Individual `json:"individual"`
+}
+
+type Individual struct {
+	ID        string `json:"id"`
+	BirthDate struct {
+		Text string `json:"text"`
+	} `json:"birth_date"`
+	DeathDate struct {
+		Text string `json:"text"`
+	} `json:"death_date"`
+	BirthPlace string `json:"birth_place"`
+	DeathPlace string `json:"death_place"`
+	Age        struct {
 		Text string `json:"text"`
 	} `json:"age"`
+	Gender       string `json:"gender"`
+	CauseOfDeath string `json:"cause_of_death"`
 }
 
 func CreateProfile(apiKey, name, description string) (string, error) {

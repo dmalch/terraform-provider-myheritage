@@ -52,19 +52,52 @@ func resourceProfileRead(ctx context.Context, d *schema.ResourceData, m interfac
 	profileID := d.Id()
 	apiKey := m.(string) // Retrieve the API key from the meta interface
 
-	// Call MyHeritage API to read the family tree
-	// Assume you have a function getFamilyTree that interacts with the API
-	profile, err := myheritage.GetProfile(apiKey, profileID)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = d.Set("name", profile.Name)
+	d, err := retrieveProfile(apiKey, profileID, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	return diags
+}
+
+func retrieveProfile(apiKey string, profileID string, d *schema.ResourceData) (*schema.ResourceData, error) {
+	profile, err := myheritage.GetProfile(apiKey, profileID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("first_name", profile.FirstName); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("first_name", profile.FirstName); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("birth_date", profile.Individual.BirthDate); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("death_date", profile.Individual.DeathDate); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("birth_place", profile.Individual.BirthPlace); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("death_place", profile.Individual.DeathPlace); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("cause_of_death", profile.Individual.CauseOfDeath); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("gender", profile.Individual.Gender); err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
 func resourceProfileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -107,14 +140,7 @@ func resourceProfileImport(ctx context.Context, d *schema.ResourceData, m interf
 	profileID := d.Id()
 	apiKey := m.(string) // Retrieve the API key from the meta interface
 
-	// Call MyHeritage API to read the family tree
-	// Assume you have a function getFamilyTree that interacts with the API
-	profile, err := myheritage.GetProfile(apiKey, profileID)
-	if err != nil {
-		return nil, err
-	}
-
-	err = d.Set("name", profile.Name)
+	d, err := retrieveProfile(apiKey, profileID, d)
 	if err != nil {
 		return nil, err
 	}
