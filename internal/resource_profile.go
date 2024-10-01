@@ -15,6 +15,9 @@ func resourceProfile() *schema.Resource {
 		ReadContext:   resourceProfileRead,
 		UpdateContext: resourceProfileUpdate,
 		DeleteContext: resourceProfileDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceProfileImport,
+		},
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -98,4 +101,23 @@ func resourceProfileDelete(ctx context.Context, d *schema.ResourceData, m interf
 	d.SetId("")
 
 	return diags
+}
+
+func resourceProfileImport(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	profileID := d.Id()
+	apiKey := m.(string) // Retrieve the API key from the meta interface
+
+	// Call MyHeritage API to read the family tree
+	// Assume you have a function getFamilyTree that interacts with the API
+	profile, err := myheritage.GetProfile(apiKey, profileID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = d.Set("name", profile.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
