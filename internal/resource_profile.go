@@ -50,18 +50,20 @@ func resourceProfileCreate(ctx context.Context, d *schema.ResourceData, m interf
 func resourceProfileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	familyTreeID := d.Id()
+	profileID := d.Id()
 	apiKey := m.(string) // Retrieve the API key from the meta interface
 
 	// Call MyHeritage API to read the family tree
 	// Assume you have a function getFamilyTree that interacts with the API
-	familyTree, err := myheritage.GetProfile(apiKey, familyTreeID)
+	profile, err := myheritage.GetProfile(apiKey, profileID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.Set("name", familyTree.Name)
-	d.Set("description", familyTree.Description)
+	err = d.Set("name", profile.Name)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
