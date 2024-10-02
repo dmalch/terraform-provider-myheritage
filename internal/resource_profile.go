@@ -89,7 +89,7 @@ func resourceProfileRead(ctx context.Context, d *schema.ResourceData, m interfac
 }
 
 func retrieveProfile(apiKey string, profileID string, d *schema.ResourceData) (*schema.ResourceData, error) {
-	profile, err := myheritage.GetProfile(apiKey, profileID)
+	profile, err := myheritage.GetProfileHeader(apiKey, profileID)
 	if err != nil {
 		return nil, err
 	}

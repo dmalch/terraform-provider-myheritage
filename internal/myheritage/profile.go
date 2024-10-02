@@ -12,20 +12,18 @@ import (
 )
 
 type ProfileHeaderResponse struct {
-	Data ProfileData `json:"data"`
+	Data struct {
+		Profile ProfileHeader `json:"profile"`
+	} `json:"data"`
 }
 
-type ProfileData struct {
-	Profile Profile `json:"profile"`
+type ProfileHeader struct {
+	FirstName  string           `json:"first_name"`
+	LastName   string           `json:"last_name"`
+	Individual IndividualHeader `json:"individual"`
 }
 
-type Profile struct {
-	FirstName  string     `json:"first_name"`
-	LastName   string     `json:"last_name"`
-	Individual Individual `json:"individual"`
-}
-
-type Individual struct {
+type IndividualHeader struct {
 	ID        string `json:"id"`
 	BirthDate struct {
 		Text string `json:"text"`
@@ -47,8 +45,9 @@ func CreateProfile(apiKey, name, description string) (string, error) {
 }
 
 const profileHeaderUrl = "https://familygraphql.myheritage.com/profile_header_data/"
+const profileDetailsUrl = "https://familygraphql.myheritage.com/profile_details_data/"
 
-func GetProfile(apiKey, profileId string) (*Profile, error) {
+func GetProfileHeader(apiKey, profileId string) (*ProfileHeader, error) {
 	// Create a buffer to hold the multipart form-data
 	var payload bytes.Buffer
 	writer := multipart.NewWriter(&payload)
@@ -104,6 +103,135 @@ func GetProfile(apiKey, profileId string) (*Profile, error) {
 	}
 
 	return &profile.Data.Profile, nil
+}
+
+type ProfileDetailsResponse struct {
+	Data struct {
+		Profile struct {
+			Individual IndividualDetails `json:"individual"`
+		} `json:"profile"`
+	} `json:"data"`
+}
+
+type IndividualDetails struct {
+	EventFacts struct {
+		Data []EventFact `json:"data"`
+	} `json:"event_facts"`
+	FamilyGroups []FamilyGroup `json:"family_groups"`
+}
+
+type EventFact struct {
+	Id               string `json:"id"`
+	Type             string `json:"type"`
+	Title            string `json:"title"`
+	IsFamilyFact     bool   `json:"is_family_fact"`
+	IsFactOfRelative bool   `json:"is_fact_of_relative"`
+	Date             struct {
+		Text string `json:"text"`
+	} `json:"date"`
+	Year              string      `json:"year"`
+	FormattedAge      interface{} `json:"formatted_age"`
+	FormattedPlace    interface{} `json:"formatted_place"`
+	CauseOfDeath      interface{} `json:"cause_of_death"`
+	Content           interface{} `json:"content"`
+	AdditionalContent string      `json:"additional_content"`
+	Individual        struct {
+		Id string `json:"id"`
+	} `json:"individual"`
+	Relative  interface{} `json:"relative"`
+	Spouse    interface{} `json:"spouse"`
+	Hint      interface{} `json:"hint"`
+	Citations struct {
+		Data interface{} `json:"data"`
+	} `json:"citations"`
+	Notes struct {
+		Data interface{} `json:"data"`
+	} `json:"notes"`
+	Media struct {
+		Data interface{} `json:"data"`
+	} `json:"media"`
+}
+
+type FamilyGroup struct {
+	Type           string              `json:"type"`
+	IsParentFamily bool                `json:"is_parent_family"`
+	Father         FamilyGroupMember   `json:"father"`
+	Mother         FamilyGroupMember   `json:"mother"`
+	Siblings       []FamilyGroupMember `json:"siblings"`
+	Spouse         FamilyGroupMember   `json:"spouse"`
+	Children       []FamilyGroupMember `json:"children"`
+}
+
+type FamilyGroupMember struct {
+	RelationshipDescription string `json:"relationship_description"`
+	RelationshipType        string `json:"relationship_type"`
+	Individual              struct {
+		Id                string      `json:"id"`
+		Name              string      `json:"name"`
+		Gender            string      `json:"gender"`
+		AgeGroup          string      `json:"age_group"`
+		Lifespan          string      `json:"lifespan"`
+		PersonalPhoto     interface{} `json:"personal_photo"`
+		LinkInProfilePage string      `json:"link_in_profile_page"`
+	} `json:"individual"`
+}
+
+func GetProfileDetails(apiKey, profileId string) (*IndividualDetails, error) {
+	// Create a buffer to hold the multipart form-data
+	var payload bytes.Buffer
+	writer := multipart.NewWriter(&payload)
+
+	_ = writer.WriteField("bearer_token", apiKey)
+	// Add the query part
+	rawQuery := `{profile(id:"` + profileId + `",lang:"EN"){individual{family_groups(relationship_prefix:"auto"){type is_parent_family father{...family_member_fragment}mother{...family_member_fragment}siblings(include_half_siblings:true){...family_member_fragment}spouse{...family_member_fragment}children{...family_member_fragment}}event_facts(hints:3){data{...fact_fragment}}insights{confirmed_record_matches_summary{...insight_summary_fragment}consistency_issues_summary{...insight_summary_fragment}relative_hints{...hint_fragment}}map_pins{data{...map_pin_fragment}}}site_membership{...site_membership_fragment}user{surname_research}birthday_greeting{...greeting_fragment}anniversary_greeting{...greeting_fragment}}}fragment fact_fragment on Fact{id type title is_family_fact is_fact_of_relative date{text}year formatted_age formatted_place cause_of_death content additional_content individual{id}relative{...fact_relative_fragment}spouse{...fact_relative_fragment}hint{...hint_fragment}citations{data{...citation_fragment}}notes{data{...note_fragment}}media{data{name link thumbnails(thumbnail_size:"96x96c"){url}}}}fragment citation_fragment on Citation{id page confidence event{id title}family_event{id title}date{text}formatted_text page_link{url name image}source{name smart_matching_site{id}image link}extended_citation{reference comment reason}smart_matching_individual{id name}}fragment note_fragment on Note{id type text subject body}fragment family_member_fragment on Relationship{relationship_description relationship_type individual{id name gender age_group lifespan personal_photo{...personal_photo_fragment}link_in_profile_page}}fragment personal_photo_fragment on Photo{thumbnails(thumbnail_size:"136x136c"){url}}fragment fact_relative_fragment on Individual{id name gender age_group personal_photo{...personal_photo_fragment}link_in_profile_page}fragment insight_summary_fragment on InsightSummary{type status count link is_accessible fields{id label value}}fragment hint_fragment on InsightHint{factor key modifier count first_source_name image}fragment map_pin_fragment on FactMapPin{location{name point{lat lng}bounds{north_east{lat lng}south_west{lat lng}}}facts{data{id is_fact_of_relative is_family_fact title date{text}formatted_place individual{id}relative{id name}spouse{name}}}}fragment sentence_fragment on StorySentence{text tokens{type text value link}}fragment site_membership_fragment on ProfileSiteMembership{member_id member_gender site_id site_creator_id role_sentence{...sentence_fragment}visit_sentence{...sentence_fragment}join_sentence{...sentence_fragment}request_sentence{...sentence_fragment}is_current_user_member_in_site can_user_contact_member can_user_contact_site_manager can_user_promote_member_to_site_manager can_user_demote_member_from_site_manager can_user_remind_member_to_visit can_user_change_member_email_for_remind_to_visit can_user_review_membership_request review_membership_request_link can_user_remove_member_from_site can_user_identify_member_in_tree can_user_edit_member_profile edit_member_profile_link can_user_edit_member_site_preferences edit_member_site_preferences_link can_user_edit_member_privacy_preferences edit_member_privacy_preferences_link can_user_change_member_email_and_password change_member_email_and_password_link can_user_view_member_public_profile view_member_public_profile_link can_user_associate_member_in_tree other_site_memberships{data{site_name site_link role}}}fragment greeting_fragment on ProfileGreeting{type date title label link}`
+	_ = writer.WriteField("query", strconv.Quote(rawQuery))
+	_ = writer.WriteField("description", "profile details data")
+
+	// Close the writer to finalize the multipart form-data
+	err := writer.Close()
+	if err != nil {
+		slog.Error("Error closing writer", "error", err)
+		return nil, err
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", profileDetailsUrl, &payload)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", writer.FormDataContentType())
+
+	res, err := client.Do(req)
+	if err != nil {
+		slog.Error("Error sending request", "error", err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		slog.Error("Error reading response", "error", err)
+		return nil, err
+	}
+
+	slog.Info("Response body", "body", string(body))
+
+	if res.StatusCode != http.StatusOK {
+		slog.Error("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
+		return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
+	}
+
+	var profile ProfileDetailsResponse
+	err = json.Unmarshal(body, &profile)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &profile.Data.Profile.Individual, nil
 }
 
 func UpdateProfile(apiKey, familyTreeID, name, description string) error {
