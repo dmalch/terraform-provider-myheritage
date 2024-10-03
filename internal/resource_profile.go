@@ -51,6 +51,14 @@ func resourceProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"father_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"mother_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -125,6 +133,24 @@ func retrieveProfile(apiKey string, profileID string, d *schema.ResourceData) (*
 	if err := d.Set("gender", profile.Individual.Gender); err != nil {
 		return nil, err
 	}
+
+	individualDetails, err := myheritage.GetProfileDetails(apiKey, profileID)
+	if err != nil {
+		return nil, err
+	}
+
+	if fatherId := individualDetails.GetFatherId(); fatherId != "" {
+		if err := d.Set("father_id", fatherId); err != nil {
+			return nil, err
+		}
+	}
+
+	if motherId := individualDetails.GetMotherId(); motherId != "" {
+		if err := d.Set("mother_id", motherId); err != nil {
+			return nil, err
+		}
+	}
+
 	return d, nil
 }
 

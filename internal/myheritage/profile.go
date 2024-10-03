@@ -117,6 +117,30 @@ type IndividualDetails struct {
 	FamilyGroups []FamilyGroup `json:"family_groups"`
 }
 
+const FamilyGroupTypeParent = "parent"
+
+func (d *IndividualDetails) GetFatherId() string {
+	for _, familyGroup := range d.FamilyGroups {
+		if familyGroup.IsParentFamily && familyGroup.Type == FamilyGroupTypeParent &&
+			familyGroup.Father != nil {
+			return familyGroup.Father.Individual.Id
+		}
+	}
+
+	return ""
+}
+
+func (d *IndividualDetails) GetMotherId() string {
+	for _, familyGroup := range d.FamilyGroups {
+		if familyGroup.IsParentFamily && familyGroup.Type == FamilyGroupTypeParent &&
+			familyGroup.Mother != nil {
+			return familyGroup.Mother.Individual.Id
+		}
+	}
+
+	return ""
+}
+
 type EventFact struct {
 	Id               string `json:"id"`
 	Type             string `json:"type"`
@@ -152,10 +176,10 @@ type EventFact struct {
 type FamilyGroup struct {
 	Type           string              `json:"type"`
 	IsParentFamily bool                `json:"is_parent_family"`
-	Father         FamilyGroupMember   `json:"father"`
-	Mother         FamilyGroupMember   `json:"mother"`
+	Father         *FamilyGroupMember  `json:"father"`
+	Mother         *FamilyGroupMember  `json:"mother"`
 	Siblings       []FamilyGroupMember `json:"siblings"`
-	Spouse         FamilyGroupMember   `json:"spouse"`
+	Spouse         *FamilyGroupMember  `json:"spouse"`
 	Children       []FamilyGroupMember `json:"children"`
 }
 
