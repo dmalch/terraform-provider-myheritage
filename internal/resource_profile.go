@@ -59,6 +59,10 @@ func resourceProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"individual_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -131,6 +135,10 @@ func retrieveProfile(apiKey string, profileID string, d *schema.ResourceData) (*
 	}
 
 	if err := d.Set("gender", profile.Individual.Gender); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("individual_id", profile.Individual.ID); err != nil {
 		return nil, err
 	}
 
