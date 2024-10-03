@@ -24,7 +24,7 @@ type ProfileHeader struct {
 }
 
 type IndividualHeader struct {
-	ID        string `json:"id"`
+	Id        string `json:"id"`
 	BirthDate struct {
 		Text string `json:"text"`
 	} `json:"birth_date"`

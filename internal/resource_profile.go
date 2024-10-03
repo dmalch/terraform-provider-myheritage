@@ -63,6 +63,38 @@ func resourceProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"event": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"date": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"additional_content": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"formatted_place": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"title": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -100,8 +132,8 @@ func resourceProfileRead(ctx context.Context, d *schema.ResourceData, m interfac
 	return diags
 }
 
-func retrieveProfile(apiKey string, profileID string, d *schema.ResourceData) (*schema.ResourceData, error) {
-	profile, err := myheritage.GetProfileHeader(apiKey, profileID)
+func retrieveProfile(apiKey string, profileId string, d *schema.ResourceData) (*schema.ResourceData, error) {
+	profile, err := myheritage.GetProfileHeader(apiKey, profileId)
 	if err != nil {
 		return nil, err
 	}
@@ -138,11 +170,11 @@ func retrieveProfile(apiKey string, profileID string, d *schema.ResourceData) (*
 		return nil, err
 	}
 
-	if err := d.Set("individual_id", profile.Individual.ID); err != nil {
+	if err := d.Set("individual_id", profile.Individual.Id); err != nil {
 		return nil, err
 	}
 
-	individualDetails, err := myheritage.GetProfileDetails(apiKey, profileID)
+	individualDetails, err := myheritage.GetProfileDetails(apiKey, profileId)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +187,22 @@ func retrieveProfile(apiKey string, profileID string, d *schema.ResourceData) (*
 
 	if motherId := individualDetails.GetMotherId(); motherId != "" {
 		if err := d.Set("mother_id", motherId); err != nil {
+			return nil, err
+		}
+	}
+
+	for _, eventFact := range individualDetails.EventFacts.Data {
+		if eventFact.IsFactOfRelative {
+			continue
+		}
+		event := map[string]interface{}{
+			"id":                 eventFact.Id,
+			"type":               eventFact.Type,
+			"date":               eventFact.Date.Text,
+			"additional_content": eventFact.AdditionalContent,
+			"title":              eventFact.Title,
+		}
+		if err := d.Set("event", append(d.Get("event").(*schema.Set).List(), event)); err != nil {
 			return nil, err
 		}
 	}
