@@ -1,0 +1,3 @@
+package myheritage
+
+const testApiKey = ""
