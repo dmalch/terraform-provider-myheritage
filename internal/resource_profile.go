@@ -87,7 +87,7 @@ func (r *ProfileResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"individual_id": schema.StringAttribute{
 				Computed: true,
 			},
-			"event": schema.ListNestedAttribute{
+			"events": schema.ListNestedAttribute{
 				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -129,7 +129,7 @@ type ProfileResourceModel struct {
 	Gender       types.String `tfsdk:"gender"`
 	FatherID     types.String `tfsdk:"father_id"`
 	MotherID     types.String `tfsdk:"mother_id"`
-	Event        types.List   `tfsdk:"event"`
+	Event        types.List   `tfsdk:"events"`
 }
 
 type EventModel struct {
