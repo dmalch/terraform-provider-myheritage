@@ -2,94 +2,111 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/terraform-provider-myheritage/internal/myheritage"
 )
 
-func resourceProfile() *schema.Resource {
-	return &schema.Resource{
-		CreateContext: resourceProfileCreate,
-		ReadContext:   resourceProfileRead,
-		UpdateContext: resourceProfileUpdate,
-		DeleteContext: resourceProfileDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: resourceProfileImport,
-		},
-		Schema: map[string]*schema.Schema{
-			"first_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"last_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"birth_date": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"birth_place": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"death_date": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"death_place": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"cause_of_death": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"gender": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"father_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"mother_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"individual_id": {
-				Type:     schema.TypeString,
+type ProfileResource struct {
+	resource.ResourceWithConfigure
+	apiKey types.String
+}
+
+func NewProfileResource() resource.Resource {
+	return &ProfileResource{}
+}
+
+// Metadata provides the resource type name
+func (r *ProfileResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = "myheritage_profile"
+}
+
+func (r *ProfileResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Always perform a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	provider, ok := req.ProviderData.(*MyHeritageProvider)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *MyHeritageProvider, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	r.apiKey = provider.apiKey
+}
+
+// Schema defines the schema for the resource
+func (r *ProfileResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed: true,
 			},
-			"event": {
-				Type:     schema.TypeSet,
+			"first_name": schema.StringAttribute{
+				Required: true,
+			},
+			"last_name": schema.StringAttribute{
+				Required: true,
+			},
+			"birth_date": schema.StringAttribute{
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
+			},
+			"birth_place": schema.StringAttribute{
+				Optional: true,
+			},
+			"death_date": schema.StringAttribute{
+				Optional: true,
+			},
+			"death_place": schema.StringAttribute{
+				Optional: true,
+			},
+			"cause_of_death": schema.StringAttribute{
+				Optional: true,
+			},
+			"gender": schema.StringAttribute{
+				Optional: true,
+			},
+			"father_id": schema.StringAttribute{
+				Optional: true,
+			},
+			"mother_id": schema.StringAttribute{
+				Optional: true,
+			},
+			"individual_id": schema.StringAttribute{
+				Computed: true,
+			},
+			"event": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
 							Computed: true,
 						},
-						"type": {
-							Type:     schema.TypeString,
+						"type": schema.StringAttribute{
 							Required: true,
 						},
-						"date": {
-							Type:     schema.TypeString,
+						"date": schema.StringAttribute{
 							Optional: true,
 						},
-						"additional_content": {
-							Type:     schema.TypeString,
+						"additional_content": schema.StringAttribute{
 							Optional: true,
 						},
-						"formatted_place": {
-							Type:     schema.TypeString,
+						"formatted_place": schema.StringAttribute{
 							Optional: true,
 						},
-						"title": {
-							Type:     schema.TypeString,
+						"title": schema.StringAttribute{
 							Computed: true,
 						},
 					},
@@ -99,161 +116,182 @@ func resourceProfile() *schema.Resource {
 	}
 }
 
-func resourceProfileCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	name := d.Get("name").(string)
-	description := d.Get("description").(string)
-	apiKey := m.(string) // Retrieve the API key from the meta interface
-
-	// Call MyHeritage API to create the family tree
-	// Assume you have a function createFamilyTree that interacts with the API
-	familyTreeID, err := myheritage.CreateProfile(apiKey, name, description)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(familyTreeID)
-
-	return diags
+type ProfileResourceModel struct {
+	ID           types.String `tfsdk:"id"`
+	FirstName    types.String `tfsdk:"first_name"`
+	LastName     types.String `tfsdk:"last_name"`
+	IndividualID types.String `tfsdk:"individual_id"`
+	BirthDate    types.String `tfsdk:"birth_date"`
+	BirthPlace   types.String `tfsdk:"birth_place"`
+	DeathDate    types.String `tfsdk:"death_date"`
+	DeathPlace   types.String `tfsdk:"death_place"`
+	CauseOfDeath types.String `tfsdk:"cause_of_death"`
+	Gender       types.String `tfsdk:"gender"`
+	FatherID     types.String `tfsdk:"father_id"`
+	MotherID     types.String `tfsdk:"mother_id"`
+	Event        types.List   `tfsdk:"event"`
 }
 
-func resourceProfileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	profileID := d.Id()
-	apiKey := m.(string) // Retrieve the API key from the meta interface
-
-	d, err := retrieveProfile(apiKey, profileID, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return diags
+type EventModel struct {
+	ID                types.String `tfsdk:"id"`
+	Type              types.String `tfsdk:"type"`
+	Date              types.String `tfsdk:"date"`
+	AdditionalContent types.String `tfsdk:"additional_content"`
+	FormattedPlace    types.String `tfsdk:"formatted_place"`
+	Title             types.String `tfsdk:"title"`
 }
 
-func retrieveProfile(apiKey string, profileId string, d *schema.ResourceData) (*schema.ResourceData, error) {
-	profile, err := myheritage.GetProfileHeader(apiKey, profileId)
+// Create creates the resource
+func (r *ProfileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan ProfileResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Access the API key from the provider's configuration
+	familyTreeID, err := myheritage.CreateProfile(r.apiKey.ValueString(), plan.FirstName.ValueString(), plan.LastName.ValueString())
 	if err != nil {
-		return nil, err
+		resp.Diagnostics.AddError("Error creating profile", err.Error())
+		return
 	}
 
-	if err := d.Set("first_name", profile.FirstName); err != nil {
-		return nil, err
+	plan.IndividualID = types.StringValue(familyTreeID)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
+// Read reads the resource
+func (r *ProfileResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state ProfileResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if err := d.Set("last_name", profile.LastName); err != nil {
-		return nil, err
-	}
-
-	if err := d.Set("birth_date", profile.Individual.BirthDate.Text); err != nil {
-		return nil, err
-	}
-
-	if err := d.Set("death_date", profile.Individual.DeathDate.Text); err != nil {
-		return nil, err
-	}
-
-	if err := d.Set("birth_place", profile.Individual.BirthPlace); err != nil {
-		return nil, err
-	}
-
-	if err := d.Set("death_place", profile.Individual.DeathPlace); err != nil {
-		return nil, err
-	}
-
-	if err := d.Set("cause_of_death", profile.Individual.CauseOfDeath); err != nil {
-		return nil, err
-	}
-
-	if err := d.Set("gender", profile.Individual.Gender); err != nil {
-		return nil, err
-	}
-
-	if err := d.Set("individual_id", profile.Individual.Id); err != nil {
-		return nil, err
-	}
-
-	individualDetails, err := myheritage.GetProfileDetails(apiKey, profileId)
+	profile, err := myheritage.GetProfileHeader(r.apiKey.ValueString(), state.ID.ValueString())
 	if err != nil {
-		return nil, err
+		resp.Diagnostics.AddError("Error reading profile", err.Error())
+		return
+	}
+
+	if profile.FirstName != "" {
+		state.FirstName = types.StringValue(profile.FirstName)
+	}
+	if profile.LastName != "" {
+		state.LastName = types.StringValue(profile.LastName)
+	}
+	if profile.Individual.Id != "" {
+		state.IndividualID = types.StringValue(profile.Individual.Id)
+	}
+	if profile.Individual.BirthDate.Text != "" {
+		state.BirthDate = types.StringValue(profile.Individual.BirthDate.Text)
+	}
+	if profile.Individual.BirthPlace != "" {
+		state.BirthPlace = types.StringValue(profile.Individual.BirthPlace)
+	}
+	if profile.Individual.DeathDate.Text != "" {
+		state.DeathDate = types.StringValue(profile.Individual.DeathDate.Text)
+	}
+	if profile.Individual.DeathPlace != "" {
+		state.DeathPlace = types.StringValue(profile.Individual.DeathPlace)
+	}
+	if profile.Individual.Gender != "" {
+		state.Gender = types.StringValue(profile.Individual.Gender)
+	}
+	if profile.Individual.CauseOfDeath != "" {
+		state.CauseOfDeath = types.StringValue(profile.Individual.CauseOfDeath)
+	}
+
+	individualDetails, err := myheritage.GetProfileDetails(r.apiKey.ValueString(), state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading profile details", err.Error())
+		return
 	}
 
 	if fatherId := individualDetails.GetFatherId(); fatherId != "" {
-		if err := d.Set("father_id", fatherId); err != nil {
-			return nil, err
-		}
+		state.FatherID = types.StringValue(fatherId)
 	}
 
 	if motherId := individualDetails.GetMotherId(); motherId != "" {
-		if err := d.Set("mother_id", motherId); err != nil {
-			return nil, err
-		}
+		state.MotherID = types.StringValue(motherId)
 	}
+
+	// Prepare a list to store updated events
+	var events []EventModel
 
 	for _, eventFact := range individualDetails.EventFacts.Data {
 		if eventFact.IsFactOfRelative {
 			continue
 		}
-		event := map[string]interface{}{
-			"id":                 eventFact.Id,
-			"type":               eventFact.Type,
-			"date":               eventFact.Date.Text,
-			"additional_content": eventFact.AdditionalContent,
-			"title":              eventFact.Title,
-		}
-		if err := d.Set("event", append(d.Get("event").(*schema.Set).List(), event)); err != nil {
-			return nil, err
-		}
+
+		var event EventModel
+
+		event.ID = types.StringValue(eventFact.Id)
+		event.Type = types.StringValue(eventFact.Type)
+		event.Date = types.StringValue(eventFact.Date.Text)
+		event.AdditionalContent = types.StringValue(eventFact.AdditionalContent)
+		event.Title = types.StringValue(eventFact.Title)
+		event.FormattedPlace = types.StringValue(eventFact.FormattedPlace)
+
+		events = append(events, event)
 	}
 
-	return d, nil
+	// Convert the slice of EventModel to a types.List
+	eventList, diags := types.ListValueFrom(ctx, types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"id":                 types.StringType,
+			"type":               types.StringType,
+			"date":               types.StringType,
+			"additional_content": types.StringType,
+			"formatted_place":    types.StringType,
+			"title":              types.StringType,
+		},
+	}, events)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set the event list in the state
+	state.Event = eventList
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func resourceProfileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	familyTreeID := d.Id()
-	name := d.Get("name").(string)
-	description := d.Get("description").(string)
-	apiKey := m.(string) // Retrieve the API key from the meta interface
-
-	// Call MyHeritage API to update the family tree
-	// Assume you have a function updateFamilyTree that interacts with the API
-	err := myheritage.UpdateProfile(apiKey, familyTreeID, name, description)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return diags
+func (r *ProfileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func resourceProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	familyTreeID := d.Id()
-	apiKey := m.(string) // Retrieve the API key from the meta interface
-
-	// Call MyHeritage API to delete the family tree
-	// Assume you have a function deleteFamilyTree that interacts with the API
-	err := myheritage.DeleteProfile(apiKey, familyTreeID)
-	if err != nil {
-		return diag.FromErr(err)
+// Update updates the resource
+func (r *ProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan ProfileResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	d.SetId("")
+	err := myheritage.UpdateProfile(r.apiKey.ValueString(), plan.IndividualID.ValueString(), plan.FirstName.ValueString(), plan.LastName.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error updating profile", err.Error())
+		return
+	}
 
-	return diags
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func resourceProfileImport(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	profileID := d.Id()
-	apiKey := m.(string) // Retrieve the API key from the meta interface
-
-	d, err := retrieveProfile(apiKey, profileID, d)
-	if err != nil {
-		return nil, err
+// Delete deletes the resource
+func (r *ProfileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state ProfileResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	return []*schema.ResourceData{d}, nil
+	err := myheritage.DeleteProfile(r.apiKey.ValueString(), state.IndividualID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error deleting profile", err.Error())
+		return
+	}
+
+	resp.State.RemoveResource(ctx)
 }

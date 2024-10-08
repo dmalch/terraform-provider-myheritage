@@ -152,7 +152,7 @@ type EventFact struct {
 	} `json:"date"`
 	Year              string      `json:"year"`
 	FormattedAge      interface{} `json:"formatted_age"`
-	FormattedPlace    interface{} `json:"formatted_place"`
+	FormattedPlace    string      `json:"formatted_place"`
 	CauseOfDeath      interface{} `json:"cause_of_death"`
 	Content           interface{} `json:"content"`
 	AdditionalContent string      `json:"additional_content"`
