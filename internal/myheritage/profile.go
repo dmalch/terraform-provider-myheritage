@@ -255,10 +255,10 @@ func GetProfileDetails(apiKey, profileId string) (*IndividualDetails, error) {
 	return &profile.Data.Profile.Individual, nil
 }
 
-func UpdateProfile(apiKey, familyTreeID, name, description string) error {
+func UpdateProfile(apiKey, profileId, name, description string) error {
 	return nil
 }
 
-func DeleteProfile(apiKey, familyTreeID string) error {
+func DeleteProfile(apiKey, profileId string) error {
 	return nil
 }

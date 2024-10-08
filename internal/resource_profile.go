@@ -168,14 +168,13 @@ func (r *ProfileResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// Access the API key from the provider's configuration
-	familyTreeID, err := myheritage.CreateProfile(r.apiKey.ValueString(), plan.FirstName.ValueString(), plan.LastName.ValueString())
+	ID, err := myheritage.CreateProfile(r.apiKey.ValueString(), plan.FirstName.ValueString(), plan.LastName.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating profile", err.Error())
 		return
 	}
 
-	plan.IndividualID = types.StringValue(familyTreeID)
+	plan.ID = types.StringValue(ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
