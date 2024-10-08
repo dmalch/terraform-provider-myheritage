@@ -147,7 +147,7 @@ type EventModel struct {
 	Title             types.String `tfsdk:"title"`
 }
 
-func (m EventModel) ObjectType() types.ObjectType {
+func eventModelObjectType() types.ObjectType {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"id":                 types.StringType,
@@ -256,7 +256,7 @@ func (r *ProfileResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Convert the slice of EventModel to a types.List
-	eventList, diags := types.ListValueFrom(ctx, EventModel{}.ObjectType(), events)
+	eventList, diags := types.ListValueFrom(ctx, eventModelObjectType(), events)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
