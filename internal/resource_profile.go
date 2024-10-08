@@ -135,7 +135,7 @@ type ProfileResourceModel struct {
 	Gender       types.String `tfsdk:"gender"`
 	FatherID     types.String `tfsdk:"father_id"`
 	MotherID     types.String `tfsdk:"mother_id"`
-	Event        types.List   `tfsdk:"events"`
+	Events       types.List   `tfsdk:"events"`
 }
 
 type EventModel struct {
@@ -145,6 +145,19 @@ type EventModel struct {
 	AdditionalContent types.String `tfsdk:"additional_content"`
 	FormattedPlace    types.String `tfsdk:"formatted_place"`
 	Title             types.String `tfsdk:"title"`
+}
+
+func (m EventModel) ObjectType() types.ObjectType {
+	return types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"id":                 types.StringType,
+			"type":               types.StringType,
+			"date":               types.StringType,
+			"additional_content": types.StringType,
+			"formatted_place":    types.StringType,
+			"title":              types.StringType,
+		},
+	}
 }
 
 // Create creates the resource
@@ -243,23 +256,14 @@ func (r *ProfileResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Convert the slice of EventModel to a types.List
-	eventList, diags := types.ListValueFrom(ctx, types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"id":                 types.StringType,
-			"type":               types.StringType,
-			"date":               types.StringType,
-			"additional_content": types.StringType,
-			"formatted_place":    types.StringType,
-			"title":              types.StringType,
-		},
-	}, events)
+	eventList, diags := types.ListValueFrom(ctx, EventModel{}.ObjectType(), events)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set the event list in the state
-	state.Event = eventList
+	state.Events = eventList
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
