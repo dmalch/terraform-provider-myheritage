@@ -78,6 +78,20 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 					},
 				},
 			},
+			"notes": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed:      true,
+							PlanModifiers: []planmodifier.String{},
+						},
+						"text": schema.StringAttribute{
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
