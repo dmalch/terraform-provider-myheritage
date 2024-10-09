@@ -84,7 +84,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							Computed:      true,
-							PlanModifiers: []planmodifier.String{},
+							PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 						},
 						"text": schema.StringAttribute{
 							Required: true,
