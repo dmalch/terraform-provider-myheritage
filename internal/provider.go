@@ -43,7 +43,7 @@ func (p *MyHeritageProvider) Configure(ctx context.Context, req provider.Configu
 		return
 	}
 
-	resp.ResourceData = cfg
+	resp.ResourceData = &cfg
 }
 
 func (p *MyHeritageProvider) Resources(_ context.Context) []func() resource.Resource {
