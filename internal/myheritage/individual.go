@@ -75,3 +75,80 @@ func GetIndividual(apiKey, individualId string) (*IndividualDetails, error) {
 
 	return &individual.Data.Individual, nil
 }
+
+type IndividualBiographyResponse struct {
+	Data struct {
+		Individual IndividualBiography `json:"individual"`
+	} `json:"data"`
+}
+
+type IndividualBiography struct {
+	Id    string `json:"id"`
+	Name  string `json:"name"`
+	Notes struct {
+		Data []Note `json:"data"`
+	} `json:"notes"`
+}
+
+type Note struct {
+	Id      string `json:"id"`
+	Type    string `json:"type"`
+	Subject string `json:"subject"`
+	Text    string `json:"text"`
+	Body    string `json:"body"`
+}
+
+func GetIndividualBiography(apiKey, individualId string) (*IndividualBiography, error) {
+	// Create a Graphql request
+	var graphqlRequest GraphqlRequest
+	graphqlRequest.Query = `{individual(id:"` + individualId +
+		`",lang:"EN"){id name is_applicable_for_biography ai_biography{data{...ai_biography_fragment}}life_story{...life_story_fragment}can_generate_live_story,notes{data{...note_fragment}}comments{data{...comment_fragment}}}}fragment ai_biography_fragment on AiBiography{id status biography_item{id url}}fragment life_story_fragment on StoryChapter{text paragraphs{sentences{...sentence_fragment}}}fragment note_fragment on Note{id type text subject body}fragment comment_fragment on Comment{id text body submitter{id name}}fragment sentence_fragment on StorySentence{text tokens{type text value link}}`
+	graphqlRequest.Description = "profile biography data"
+
+	// Convert struct to JSON
+	jsonData, err := json.Marshal(graphqlRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a new HTTP request
+	req, err := http.NewRequest("POST", myheritageUrl, bytes.NewBuffer(jsonData))
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	req.Header.Add("authorization", "Bearer "+apiKey)
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", "application/json")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		slog.Error("Error sending request", "error", err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		slog.Error("Error reading response", "error", err)
+		return nil, err
+	}
+
+	slog.Info("Response body", "body", string(body))
+
+	if res.StatusCode != http.StatusOK {
+		slog.Error("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
+		return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
+	}
+
+	var individual IndividualBiographyResponse
+	err = json.Unmarshal(body, &individual)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &individual.Data.Individual, nil
+}
