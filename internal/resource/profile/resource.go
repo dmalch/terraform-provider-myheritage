@@ -61,6 +61,7 @@ type ResourceModel struct {
 	FatherID     types.String `tfsdk:"father_id"`
 	MotherID     types.String `tfsdk:"mother_id"`
 	Events       types.List   `tfsdk:"events"`
+	Notes        types.List   `tfsdk:"notes"`
 }
 
 type EventModel struct {
@@ -81,6 +82,20 @@ func eventModelObjectType() types.ObjectType {
 			"additional_content": types.StringType,
 			"formatted_place":    types.StringType,
 			"title":              types.StringType,
+		},
+	}
+}
+
+type NoteModel struct {
+	ID   types.String `tfsdk:"id"`
+	Text types.String `tfsdk:"text"`
+}
+
+func noteModelObjectType() types.ObjectType {
+	return types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"id":   types.StringType,
+			"text": types.StringType,
 		},
 	}
 }
@@ -167,14 +182,14 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			continue
 		}
 
-		var event EventModel
-
-		event.ID = types.StringValue(eventFact.Id)
-		event.Type = types.StringValue(eventFact.Type)
-		event.Date = types.StringValue(eventFact.Date.Text)
-		event.AdditionalContent = types.StringValue(eventFact.AdditionalContent)
-		event.Title = types.StringValue(eventFact.Title)
-		event.FormattedPlace = types.StringValue(eventFact.FormattedPlace)
+		event := EventModel{
+			ID:                types.StringValue(eventFact.Id),
+			Type:              types.StringValue(eventFact.Type),
+			Date:              types.StringValue(eventFact.Date.Text),
+			AdditionalContent: types.StringValue(eventFact.AdditionalContent),
+			Title:             types.StringValue(eventFact.Title),
+			FormattedPlace:    types.StringValue(eventFact.FormattedPlace),
+		}
 
 		events = append(events, event)
 	}
@@ -188,6 +203,31 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 	// Set the event list in the state
 	state.Events = eventList
+
+	individualBiography, err := myheritage.GetIndividualBiography(r.apiKey.ValueString(), state.IndividualID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading biography details", err.Error())
+		return
+	}
+
+	var notes []NoteModel
+
+	for _, noteRecord := range individualBiography.Notes.Data {
+		note := NoteModel{
+			ID:   types.StringValue(noteRecord.Id),
+			Text: types.StringValue(noteRecord.Text),
+		}
+		notes = append(notes, note)
+	}
+
+	// Convert the slice of NoteModel to a types.List
+	noteList, diags := types.ListValueFrom(ctx, noteModelObjectType(), notes)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Notes = noteList
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
