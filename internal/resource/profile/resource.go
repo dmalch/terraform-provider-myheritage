@@ -1,4 +1,4 @@
-package internal
+package profile
 
 import (
 	"context"
@@ -7,36 +7,34 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/dmalch/terraform-provider-myheritage/internal/config"
 	"github.com/dmalch/terraform-provider-myheritage/internal/myheritage"
 )
 
-type ProfileResource struct {
+type Resource struct {
 	resource.ResourceWithConfigure
 	apiKey types.String
 }
 
 func NewProfileResource() resource.Resource {
-	return &ProfileResource{}
+	return &Resource{}
 }
 
 // Metadata provides the resource type name
-func (r *ProfileResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "myheritage_profile"
 }
 
-func (r *ProfileResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Always perform a nil check when handling ProviderData because Terraform
 	// sets that data after it calls the ConfigureProvider RPC.
 	if req.ProviderData == nil {
 		return
 	}
 
-	provider, ok := req.ProviderData.(*MyHeritageProvider)
+	cfg, ok := req.ProviderData.(*config.MyHeritageProviderConfig)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -46,83 +44,10 @@ func (r *ProfileResource) Configure(_ context.Context, req resource.ConfigureReq
 		return
 	}
 
-	r.apiKey = provider.apiKey
+	r.apiKey = cfg.ApiKey
 }
 
-// Schema defines the schema for the resource
-func (r *ProfileResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-			},
-			"first_name": schema.StringAttribute{
-				Required: true,
-			},
-			"last_name": schema.StringAttribute{
-				Required: true,
-			},
-			"birth_date": schema.StringAttribute{
-				Optional: true,
-			},
-			"birth_place": schema.StringAttribute{
-				Optional: true,
-			},
-			"death_date": schema.StringAttribute{
-				Optional: true,
-			},
-			"death_place": schema.StringAttribute{
-				Optional: true,
-			},
-			"cause_of_death": schema.StringAttribute{
-				Optional: true,
-			},
-			"gender": schema.StringAttribute{
-				Optional: true,
-			},
-			"father_id": schema.StringAttribute{
-				Optional: true,
-			},
-			"mother_id": schema.StringAttribute{
-				Optional: true,
-			},
-			"individual_id": schema.StringAttribute{
-				Computed:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-			},
-			"events": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:      true,
-							PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-						},
-						"type": schema.StringAttribute{
-							Required: true,
-						},
-						"date": schema.StringAttribute{
-							Optional: true,
-						},
-						"additional_content": schema.StringAttribute{
-							Optional: true,
-						},
-						"formatted_place": schema.StringAttribute{
-							Optional: true,
-						},
-						"title": schema.StringAttribute{
-							Computed:      true,
-							PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-type ProfileResourceModel struct {
+type ResourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	FirstName    types.String `tfsdk:"first_name"`
 	LastName     types.String `tfsdk:"last_name"`
@@ -161,8 +86,8 @@ func eventModelObjectType() types.ObjectType {
 }
 
 // Create creates the resource
-func (r *ProfileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan ProfileResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -179,8 +104,8 @@ func (r *ProfileResource) Create(ctx context.Context, req resource.CreateRequest
 }
 
 // Read reads the resource
-func (r *ProfileResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state ProfileResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,13 +192,13 @@ func (r *ProfileResource) Read(ctx context.Context, req resource.ReadRequest, re
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func (r *ProfileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Update updates the resource
-func (r *ProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan ProfileResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -289,8 +214,8 @@ func (r *ProfileResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 // Delete deletes the resource
-func (r *ProfileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state ProfileResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return

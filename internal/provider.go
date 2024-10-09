@@ -7,11 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/dmalch/terraform-provider-myheritage/internal/config"
+	"github.com/dmalch/terraform-provider-myheritage/internal/resource/profile"
 )
 
 type MyHeritageProvider struct {
-	apiKey types.String
 }
 
 func New() provider.Provider {
@@ -34,25 +35,20 @@ func (p *MyHeritageProvider) Schema(_ context.Context, _ provider.SchemaRequest,
 	}
 }
 
-type MyHeritageProviderConfig struct {
-	ApiKey types.String `tfsdk:"api_key"`
-}
-
 func (p *MyHeritageProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var config MyHeritageProviderConfig
+	var cfg config.MyHeritageProviderConfig
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &cfg)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	p.apiKey = config.ApiKey
-	resp.ResourceData = p
+	resp.ResourceData = cfg
 }
 
 func (p *MyHeritageProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewProfileResource,
+		profile.NewProfileResource,
 	}
 }
 
