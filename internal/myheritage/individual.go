@@ -3,8 +3,6 @@ package myheritage
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
 	"log/slog"
 	"mime/multipart"
 	"net/http"
@@ -35,7 +33,6 @@ func GetIndividual(apiKey, individualId string) (*IndividualDetails, error) {
 		return nil, err
 	}
 
-	client := &http.Client{}
 	req, err := http.NewRequest("POST", myheritageUrl, &payload)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
@@ -46,24 +43,9 @@ func GetIndividual(apiKey, individualId string) (*IndividualDetails, error) {
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", writer.FormDataContentType())
 
-	res, err := client.Do(req)
+	body, err := doRequest(req)
 	if err != nil {
-		slog.Error("Error sending request", "error", err)
 		return nil, err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		slog.Error("Error reading response", "error", err)
-		return nil, err
-	}
-
-	slog.Info("Response body", "body", string(body))
-
-	if res.StatusCode != http.StatusOK {
-		slog.Error("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
-		return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
 	}
 
 	var individual IndividualResponse
@@ -122,25 +104,9 @@ func GetIndividualBiography(apiKey, individualId string) (*IndividualBiography, 
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
 
-	client := &http.Client{}
-	res, err := client.Do(req)
+	body, err := doRequest(req)
 	if err != nil {
-		slog.Error("Error sending request", "error", err)
 		return nil, err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		slog.Error("Error reading response", "error", err)
-		return nil, err
-	}
-
-	slog.Info("Response body", "body", string(body))
-
-	if res.StatusCode != http.StatusOK {
-		slog.Error("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
-		return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
 	}
 
 	var individual IndividualBiographyResponse

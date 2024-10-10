@@ -3,8 +3,6 @@ package myheritage
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 )
@@ -193,27 +191,13 @@ func GetProfileDetails(apiKey, profileId string) (*IndividualDetails, error) {
 		return nil, err
 	}
 
-	client := &http.Client{}
 	req.Header.Add("authorization", "Bearer "+apiKey)
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
 
-	res, err := client.Do(req)
+	body, err := doRequest(req)
 	if err != nil {
-		slog.Error("Error sending request", "error", err)
 		return nil, err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		slog.Error("Error reading response", "error", err)
-		return nil, err
-	}
-
-	if res.StatusCode != http.StatusOK {
-		slog.Error("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
-		return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
 	}
 
 	var profile ProfileDetailsResponse
