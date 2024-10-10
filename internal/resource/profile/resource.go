@@ -71,6 +71,7 @@ type EventModel struct {
 	AdditionalContent types.String `tfsdk:"additional_content"`
 	FormattedPlace    types.String `tfsdk:"formatted_place"`
 	Title             types.String `tfsdk:"title"`
+	CauseOfDeath      types.String `tfsdk:"cause_of_death"`
 }
 
 func eventModelObjectType() types.ObjectType {
@@ -82,6 +83,7 @@ func eventModelObjectType() types.ObjectType {
 			"additional_content": types.StringType,
 			"formatted_place":    types.StringType,
 			"title":              types.StringType,
+			"cause_of_death":     types.StringType,
 		},
 	}
 }
@@ -189,6 +191,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			AdditionalContent: types.StringValue(eventFact.AdditionalContent),
 			Title:             types.StringValue(eventFact.Title),
 			FormattedPlace:    types.StringValue(eventFact.FormattedPlace),
+			CauseOfDeath:      types.StringValue(eventFact.CauseOfDeath),
 		}
 
 		events = append(events, event)

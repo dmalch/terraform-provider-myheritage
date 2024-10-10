@@ -150,12 +150,12 @@ type EventFact struct {
 	Date             struct {
 		Text string `json:"text"`
 	} `json:"date"`
-	Year              string      `json:"year"`
-	FormattedAge      interface{} `json:"formatted_age"`
-	FormattedPlace    string      `json:"formatted_place"`
-	CauseOfDeath      interface{} `json:"cause_of_death"`
-	Content           interface{} `json:"content"`
-	AdditionalContent string      `json:"additional_content"`
+	Year              string `json:"year"`
+	FormattedAge      string `json:"formatted_age"`
+	FormattedPlace    string `json:"formatted_place"`
+	CauseOfDeath      string `json:"cause_of_death"`
+	Content           string `json:"content"`
+	AdditionalContent string `json:"additional_content"`
 	Individual        struct {
 		Id string `json:"id"`
 	} `json:"individual"`

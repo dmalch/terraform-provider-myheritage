@@ -18,10 +18,10 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"first_name": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 			},
 			"last_name": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 			},
 			"birth_date": schema.StringAttribute{
 				Optional: true,
@@ -74,6 +74,9 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 						"title": schema.StringAttribute{
 							Computed:      true,
 							PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+						},
+						"cause_of_death": schema.StringAttribute{
+							Optional: true,
 						},
 					},
 				},
