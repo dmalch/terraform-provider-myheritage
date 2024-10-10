@@ -166,7 +166,7 @@ type EventFact struct {
 		Data interface{} `json:"data"`
 	} `json:"citations"`
 	Notes struct {
-		Data interface{} `json:"data"`
+		Data []Note `json:"data"`
 	} `json:"notes"`
 	Media struct {
 		Data interface{} `json:"data"`

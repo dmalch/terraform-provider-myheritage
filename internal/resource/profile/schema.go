@@ -63,21 +63,26 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 						"cause_of_death": schema.StringAttribute{
 							Optional: true,
 						},
+						"notes": notesSchema(),
 					},
 				},
 			},
-			"notes": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Computed:      true,
-							PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-						},
-						"text": schema.StringAttribute{
-							Required: true,
-						},
-					},
+			"notes": notesSchema(),
+		},
+	}
+}
+
+func notesSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Optional: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed:      true,
+					PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				},
+				"text": schema.StringAttribute{
+					Required: true,
 				},
 			},
 		},

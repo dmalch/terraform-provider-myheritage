@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/dmalch/terraform-provider-myheritage/internal/config"
 	"github.com/dmalch/terraform-provider-myheritage/internal/myheritage"
@@ -67,6 +69,7 @@ type EventModel struct {
 	FormattedPlace    types.String `tfsdk:"formatted_place"`
 	Title             types.String `tfsdk:"title"`
 	CauseOfDeath      types.String `tfsdk:"cause_of_death"`
+	Notes             types.List   `tfsdk:"notes"`
 }
 
 func eventModelObjectType() types.ObjectType {
@@ -164,6 +167,12 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			continue
 		}
 
+		noteList, diags := notesToList(ctx, eventFact.Notes.Data)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
 		event := EventModel{
 			ID:                types.StringValue(eventFact.Id),
 			Type:              types.StringValue(eventFact.Type),
@@ -172,6 +181,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			Title:             types.StringValue(eventFact.Title),
 			FormattedPlace:    types.StringValue(eventFact.FormattedPlace),
 			CauseOfDeath:      types.StringValue(eventFact.CauseOfDeath),
+			Notes:             noteList,
 		}
 
 		events = append(events, event)
@@ -193,18 +203,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	var notes []NoteModel
-
-	for _, noteRecord := range individualBiography.Notes.Data {
-		note := NoteModel{
-			ID:   types.StringValue(noteRecord.Id),
-			Text: types.StringValue(noteRecord.Text),
-		}
-		notes = append(notes, note)
-	}
-
-	// Convert the slice of NoteModel to a types.List
-	noteList, diags := types.ListValueFrom(ctx, noteModelObjectType(), notes)
+	noteList, diags := notesToList(ctx, individualBiography.Notes.Data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -213,6 +212,20 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	state.Notes = noteList
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func notesToList(ctx context.Context, noteRecords []myheritage.Note) (basetypes.ListValue, diag.Diagnostics) {
+	var noteModels []NoteModel
+
+	for _, noteRecord := range noteRecords {
+		noteModels = append(noteModels, NoteModel{
+			ID:   types.StringValue(noteRecord.Id),
+			Text: types.StringValue(noteRecord.Text),
+		})
+	}
+
+	// Convert the slice of NoteModel to a types.List
+	return types.ListValueFrom(ctx, noteModelObjectType(), noteModels)
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
