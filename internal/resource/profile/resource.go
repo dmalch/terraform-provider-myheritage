@@ -52,11 +52,6 @@ type ResourceModel struct {
 	FirstName    types.String `tfsdk:"first_name"`
 	LastName     types.String `tfsdk:"last_name"`
 	IndividualID types.String `tfsdk:"individual_id"`
-	BirthDate    types.String `tfsdk:"birth_date"`
-	BirthPlace   types.String `tfsdk:"birth_place"`
-	DeathDate    types.String `tfsdk:"death_date"`
-	DeathPlace   types.String `tfsdk:"death_place"`
-	CauseOfDeath types.String `tfsdk:"cause_of_death"`
 	Gender       types.String `tfsdk:"gender"`
 	FatherID     types.String `tfsdk:"father_id"`
 	MotherID     types.String `tfsdk:"mother_id"`
@@ -143,23 +138,8 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	if profile.Individual.Id != "" {
 		state.IndividualID = types.StringValue(profile.Individual.Id)
 	}
-	if profile.Individual.BirthDate.Text != "" {
-		state.BirthDate = types.StringValue(profile.Individual.BirthDate.Text)
-	}
-	if profile.Individual.BirthPlace != "" {
-		state.BirthPlace = types.StringValue(profile.Individual.BirthPlace)
-	}
-	if profile.Individual.DeathDate.Text != "" {
-		state.DeathDate = types.StringValue(profile.Individual.DeathDate.Text)
-	}
-	if profile.Individual.DeathPlace != "" {
-		state.DeathPlace = types.StringValue(profile.Individual.DeathPlace)
-	}
 	if profile.Individual.Gender != "" {
 		state.Gender = types.StringValue(profile.Individual.Gender)
-	}
-	if profile.Individual.CauseOfDeath != "" {
-		state.CauseOfDeath = types.StringValue(profile.Individual.CauseOfDeath)
 	}
 
 	individualDetails, err := myheritage.GetProfileDetails(r.apiKey.ValueString(), state.ID.ValueString())

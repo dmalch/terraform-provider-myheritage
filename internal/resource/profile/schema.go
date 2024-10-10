@@ -23,21 +23,6 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			"last_name": schema.StringAttribute{
 				Optional: true,
 			},
-			"birth_date": schema.StringAttribute{
-				Optional: true,
-			},
-			"birth_place": schema.StringAttribute{
-				Optional: true,
-			},
-			"death_date": schema.StringAttribute{
-				Optional: true,
-			},
-			"death_place": schema.StringAttribute{
-				Optional: true,
-			},
-			"cause_of_death": schema.StringAttribute{
-				Optional: true,
-			},
 			"gender": schema.StringAttribute{
 				Optional: true,
 			},
