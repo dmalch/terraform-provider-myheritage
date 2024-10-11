@@ -82,6 +82,9 @@ func eventModelObjectType() types.ObjectType {
 			"formatted_place":    types.StringType,
 			"title":              types.StringType,
 			"cause_of_death":     types.StringType,
+			"notes": types.ListType{
+				ElemType: noteModelObjectType(),
+			},
 		},
 	}
 }
