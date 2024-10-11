@@ -44,7 +44,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 
 			return nil
 		},
-		retry.Attempts(5),                 // Retry up to 5 times
+		retry.Attempts(3),
 		retry.Delay(2*time.Second),        // Wait 2 seconds between retries
 		retry.DelayType(retry.FixedDelay), // Use a fixed delay between retries
 		retry.OnRetry(func(n uint, err error) {
