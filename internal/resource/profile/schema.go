@@ -15,6 +15,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:      true,
+				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"first_name": schema.StringAttribute{
@@ -34,6 +35,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			},
 			"individual_id": schema.StringAttribute{
 				Computed:      true,
+				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"events": schema.ListNestedAttribute{
@@ -42,6 +44,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							Computed:      true,
+							Optional:      true,
 							PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 						},
 						"type": schema.StringAttribute{
@@ -79,6 +82,7 @@ func notesSchema() schema.ListNestedAttribute {
 			Attributes: map[string]schema.Attribute{
 				"id": schema.StringAttribute{
 					Computed:      true,
+					Optional:      true,
 					PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 				},
 				"text": schema.StringAttribute{

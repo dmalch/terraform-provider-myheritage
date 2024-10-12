@@ -1,6 +1,7 @@
 package myheritage
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/avast/retry-go/v4"
 )
+
+var errCode429 = errors.New("received 429 status")
 
 func doRequest(req *http.Request) ([]byte, error) {
 	var body []byte
@@ -34,7 +37,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 
 			if res.StatusCode == http.StatusTooManyRequests {
 				slog.Warn("Received 429 Too Many Requests, retrying...")
-				return fmt.Errorf("received 429 status")
+				return errCode429
 			}
 
 			if res.StatusCode != http.StatusOK {
@@ -44,6 +47,12 @@ func doRequest(req *http.Request) ([]byte, error) {
 
 			return nil
 		},
+		retry.RetryIf(func(err error) bool {
+			if errors.Is(err, errCode429) {
+				return true
+			}
+			return false
+		}),
 		retry.Attempts(3),
 		retry.Delay(2*time.Second),        // Wait 2 seconds between retries
 		retry.DelayType(retry.FixedDelay), // Use a fixed delay between retries
