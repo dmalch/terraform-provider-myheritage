@@ -111,8 +111,9 @@ func mediaSchema() schema.ListNestedAttribute {
 					PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 				},
 				"link": schema.StringAttribute{
-					Computed: true,
-					Optional: true,
+					Computed:      true,
+					Optional:      true,
+					PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 				},
 			},
 		},

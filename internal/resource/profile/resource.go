@@ -65,12 +65,12 @@ type EventModel struct {
 	ID                types.String `tfsdk:"id"`
 	Type              types.String `tfsdk:"type"`
 	Date              types.String `tfsdk:"date"`
+	Content           types.String `tfsdk:"content"`
 	AdditionalContent types.String `tfsdk:"additional_content"`
 	FormattedPlace    types.String `tfsdk:"formatted_place"`
 	Title             types.String `tfsdk:"title"`
 	CauseOfDeath      types.String `tfsdk:"cause_of_death"`
 	SpouseId          types.String `tfsdk:"spouse_id"`
-	Content           types.String `tfsdk:"content"`
 	Notes             types.List   `tfsdk:"notes"`
 	Media             types.List   `tfsdk:"media"`
 }
@@ -81,12 +81,17 @@ func eventModelObjectType() types.ObjectType {
 			"id":                 types.StringType,
 			"type":               types.StringType,
 			"date":               types.StringType,
+			"content":            types.StringType,
 			"additional_content": types.StringType,
 			"formatted_place":    types.StringType,
 			"title":              types.StringType,
 			"cause_of_death":     types.StringType,
+			"spouse_id":          types.StringType,
 			"notes": types.ListType{
 				ElemType: noteModelObjectType(),
+			},
+			"media": types.ListType{
+				ElemType: mediaModelObjectType(),
 			},
 		},
 	}
