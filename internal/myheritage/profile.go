@@ -116,6 +116,11 @@ func (d *IndividualDetails) GetMotherId() string {
 	return ""
 }
 
+const (
+	EventTypeBirth = "BITH"
+	EventTypeDeath = "DEAT"
+)
+
 type EventFact struct {
 	Id               string `json:"id"`
 	Type             string `json:"type"`

@@ -208,12 +208,12 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			ID:                types.StringValue(eventFact.Id),
 			Type:              types.StringValue(eventFact.Type),
 			Date:              types.StringValue(eventFact.Date.Text),
+			Content:           getContent(eventFact),
 			AdditionalContent: types.StringValue(eventFact.AdditionalContent),
 			Title:             types.StringValue(eventFact.Title),
 			FormattedPlace:    types.StringValue(eventFact.FormattedPlace),
 			CauseOfDeath:      types.StringValue(eventFact.CauseOfDeath),
 			SpouseId:          getSpouseId(eventFact),
-			Content:           types.StringValue(eventFact.Content),
 			Notes:             noteList,
 			Media:             mediaList,
 		}
@@ -246,6 +246,14 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	state.Notes = noteList
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func getContent(eventFact myheritage.EventFact) basetypes.StringValue {
+	// Do not return the content string for the type DEAT
+	if eventFact.Type == myheritage.EventTypeDeath {
+		return types.StringNull()
+	}
+	return types.StringValue(eventFact.Content)
 }
 
 func getSpouseId(eventFact myheritage.EventFact) basetypes.StringValue {
