@@ -134,8 +134,12 @@ type EventFact struct {
 	Individual        struct {
 		Id string `json:"id"`
 	} `json:"individual"`
-	Relative  interface{} `json:"relative"`
-	Spouse    interface{} `json:"spouse"`
+	Relative interface{} `json:"relative"`
+	Spouse   *struct {
+		Id     string `json:"id"`
+		Name   string `json:"name"`
+		Gender string `json:"gender"`
+	} `json:"spouse"`
 	Hint      interface{} `json:"hint"`
 	Citations struct {
 		Data interface{} `json:"data"`

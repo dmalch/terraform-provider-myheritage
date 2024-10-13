@@ -66,6 +66,9 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 						"cause_of_death": schema.StringAttribute{
 							Optional: true,
 						},
+						"spouse_id": schema.StringAttribute{
+							Optional: true,
+						},
 						"notes": notesSchema(),
 					},
 				},

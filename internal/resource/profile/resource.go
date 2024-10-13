@@ -69,6 +69,7 @@ type EventModel struct {
 	FormattedPlace    types.String `tfsdk:"formatted_place"`
 	Title             types.String `tfsdk:"title"`
 	CauseOfDeath      types.String `tfsdk:"cause_of_death"`
+	SpouseId          types.String `tfsdk:"spouse_id"`
 	Notes             types.List   `tfsdk:"notes"`
 }
 
@@ -184,6 +185,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			Title:             types.StringValue(eventFact.Title),
 			FormattedPlace:    types.StringValue(eventFact.FormattedPlace),
 			CauseOfDeath:      types.StringValue(eventFact.CauseOfDeath),
+			SpouseId:          getSpouseId(eventFact),
 			Notes:             noteList,
 		}
 
@@ -215,6 +217,14 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	state.Notes = noteList
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func getSpouseId(eventFact myheritage.EventFact) basetypes.StringValue {
+	if eventFact.Spouse != nil && eventFact.Spouse.Id != "" {
+		return types.StringValue(eventFact.Spouse.Id)
+	}
+
+	return types.StringNull()
 }
 
 func notesToList(ctx context.Context, noteRecords []myheritage.Note) (basetypes.ListValue, diag.Diagnostics) {
