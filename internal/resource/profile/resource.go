@@ -70,6 +70,7 @@ type EventModel struct {
 	Title             types.String `tfsdk:"title"`
 	CauseOfDeath      types.String `tfsdk:"cause_of_death"`
 	SpouseId          types.String `tfsdk:"spouse_id"`
+	Content           types.String `tfsdk:"content"`
 	Notes             types.List   `tfsdk:"notes"`
 }
 
@@ -186,6 +187,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			FormattedPlace:    types.StringValue(eventFact.FormattedPlace),
 			CauseOfDeath:      types.StringValue(eventFact.CauseOfDeath),
 			SpouseId:          getSpouseId(eventFact),
+			Content:           types.StringValue(eventFact.Content),
 			Notes:             noteList,
 		}
 
