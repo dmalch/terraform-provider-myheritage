@@ -73,6 +73,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 							Optional: true,
 						},
 						"notes": notesSchema(),
+						"media": mediaSchema(),
 					},
 				},
 			},
@@ -93,6 +94,25 @@ func notesSchema() schema.ListNestedAttribute {
 				},
 				"text": schema.StringAttribute{
 					Required: true,
+				},
+			},
+		},
+	}
+}
+
+func mediaSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Optional: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"name": schema.StringAttribute{
+					Computed:      true,
+					Optional:      true,
+					PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				},
+				"link": schema.StringAttribute{
+					Computed: true,
+					Optional: true,
 				},
 			},
 		},

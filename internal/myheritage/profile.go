@@ -148,8 +148,13 @@ type EventFact struct {
 		Data []Note `json:"data"`
 	} `json:"notes"`
 	Media struct {
-		Data interface{} `json:"data"`
+		Data []Media `json:"data"`
 	} `json:"media"`
+}
+
+type Media struct {
+	Name string `json:"name"`
+	Link string `json:"link"`
 }
 
 type FamilyGroup struct {

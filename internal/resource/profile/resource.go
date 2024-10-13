@@ -72,6 +72,7 @@ type EventModel struct {
 	SpouseId          types.String `tfsdk:"spouse_id"`
 	Content           types.String `tfsdk:"content"`
 	Notes             types.List   `tfsdk:"notes"`
+	Media             types.List   `tfsdk:"media"`
 }
 
 func eventModelObjectType() types.ObjectType {
@@ -101,6 +102,20 @@ func noteModelObjectType() types.ObjectType {
 		AttrTypes: map[string]attr.Type{
 			"id":   types.StringType,
 			"text": types.StringType,
+		},
+	}
+}
+
+type MediaModel struct {
+	Name types.String `tfsdk:"name"`
+	Link types.String `tfsdk:"link"`
+}
+
+func mediaModelObjectType() types.ObjectType {
+	return types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"name": types.StringType,
+			"link": types.StringType,
 		},
 	}
 }
@@ -178,6 +193,12 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			return
 		}
 
+		mediaList, diags := mediaToList(ctx, eventFact.Media.Data)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
 		event := EventModel{
 			ID:                types.StringValue(eventFact.Id),
 			Type:              types.StringValue(eventFact.Type),
@@ -189,6 +210,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			SpouseId:          getSpouseId(eventFact),
 			Content:           types.StringValue(eventFact.Content),
 			Notes:             noteList,
+			Media:             mediaList,
 		}
 
 		events = append(events, event)
@@ -241,6 +263,19 @@ func notesToList(ctx context.Context, noteRecords []myheritage.Note) (basetypes.
 
 	// Convert the slice of NoteModel to a types.List
 	return types.ListValueFrom(ctx, noteModelObjectType(), noteModels)
+}
+
+func mediaToList(ctx context.Context, mediaRecords []myheritage.Media) (basetypes.ListValue, diag.Diagnostics) {
+	var mediaModels []MediaModel
+
+	for _, mediaRecord := range mediaRecords {
+		mediaModels = append(mediaModels, MediaModel{
+			Name: types.StringValue(mediaRecord.Name),
+			Link: types.StringValue(mediaRecord.Link),
+		})
+	}
+
+	return types.ListValueFrom(ctx, mediaModelObjectType(), mediaModels)
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
