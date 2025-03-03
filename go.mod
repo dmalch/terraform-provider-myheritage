@@ -3,7 +3,7 @@ module github.com/dmalch/terraform-provider-myheritage
 go 1.23.0
 
 require (
-	github.com/avast/retry-go/v4 v4.6.0
+	github.com/avast/retry-go/v4 v4.6.1
 	github.com/hashicorp/terraform-plugin-framework v1.12.0
 	github.com/onsi/gomega v1.36.1
 )
