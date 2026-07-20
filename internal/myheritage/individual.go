@@ -2,6 +2,7 @@ package myheritage
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log/slog"
 	"mime/multipart"
@@ -15,7 +16,7 @@ type IndividualResponse struct {
 	} `json:"data"`
 }
 
-func GetIndividual(apiKey, individualId string) (*IndividualDetails, error) {
+func GetIndividual(ctx context.Context, apiKey, individualId string) (*IndividualDetails, error) {
 	// Create a buffer to hold the multipart form-data
 	var payload bytes.Buffer
 	writer := multipart.NewWriter(&payload)
@@ -33,7 +34,7 @@ func GetIndividual(apiKey, individualId string) (*IndividualDetails, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", myheritageUrl, &payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, myheritageUrl, &payload)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
@@ -80,7 +81,7 @@ type Note struct {
 	Body    string `json:"body"`
 }
 
-func GetIndividualBiography(apiKey, individualId string) (*IndividualBiography, error) {
+func GetIndividualBiography(ctx context.Context, apiKey, individualId string) (*IndividualBiography, error) {
 	// Create a Graphql request
 	var graphqlRequest GraphqlRequest
 	graphqlRequest.Query = `{individual(id:"` + individualId +
@@ -94,7 +95,7 @@ func GetIndividualBiography(apiKey, individualId string) (*IndividualBiography, 
 	}
 
 	// Create a new HTTP request
-	req, err := http.NewRequest("POST", myheritageUrl, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, myheritageUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err

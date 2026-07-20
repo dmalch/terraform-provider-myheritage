@@ -11,7 +11,7 @@ func TestGetIndividual(t *testing.T) {
 	RegisterTestingT(t)
 
 	individualId := "individual-760079151-1500318"
-	profile, err := GetIndividual(testApiKey, individualId)
+	profile, err := GetIndividual(t.Context(), testApiKey, individualId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -23,7 +23,7 @@ func TestGetIndividualBiography(t *testing.T) {
 	RegisterTestingT(t)
 
 	individualId := "individual-760079151-1500318"
-	profile, err := GetIndividualBiography(testApiKey, individualId)
+	profile, err := GetIndividualBiography(t.Context(), testApiKey, individualId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())

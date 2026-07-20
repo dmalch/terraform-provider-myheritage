@@ -2,6 +2,7 @@ package myheritage
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -40,7 +41,7 @@ func CreateProfile(apiKey, name, description string) (string, error) {
 	return "", nil
 }
 
-func GetProfileHeader(apiKey, profileId string) (*ProfileHeader, error) {
+func GetProfileHeader(ctx context.Context, apiKey, profileId string) (*ProfileHeader, error) {
 	// Create a Graphql request
 	var graphqlRequest GraphqlRequest
 	graphqlRequest.Query = `{profile(id:"` + profileId + `",lang:"EN"){name first_name last_name gender age_group age{text}personal_photo{...personal_photo_fragment}is_prefer_user can_current_user_view_discoveries can_current_user_manage_photos can_current_user_edit_personal_photo can_current_user_invite_individual tabs{name total counters}recent_individuals{data{...history_fragment}}favorite_individuals{data{...history_fragment}}individual{...individual_fragment}user{...user_fragment}site_membership{member_id site_id can_user_contact_member member_joined_date member_last_visit_date role_sentence{text}}tree{is_imported_using_family_search_sync}site{name}}}fragment history_fragment on Individual{id name gender age_group lifespan personal_photo{...personal_photo_fragment}tree_relationship{description}link_in_profile_page}fragment individual_fragment on Individual{id name first_name gender personal_photo{...personal_photo_fragment}is_privatized religious_name former_name namesake alternate_names birth_date{text}birth_place death_date{text}is_alive is_likely_deceased death_place burial_place cause_of_death is_cause_of_death_holocaust age{text}tree_relationship{description is_blood_relative is_biological_blood_relative blood_relative_description hour_glass_color_code is_path_to_self is_path_cannot_decide_if_related}can_edit link_in_tree link_in_pedigree_tree link_in_fan_view link_in_research_this_person link_template_in_edit_profile}fragment personal_photo_fragment on Photo{thumbnails(thumbnail_size:"136x136c"){url}}fragment user_fragment on User{name first_name crown_status country country_code birth_date{text}age{text}age_group_in_years show_age is_public is_privatized nickname created_time}`
@@ -52,7 +53,7 @@ func GetProfileHeader(apiKey, profileId string) (*ProfileHeader, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", myheritageUrl, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, myheritageUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
@@ -186,7 +187,7 @@ type FamilyGroupMember struct {
 	} `json:"individual"`
 }
 
-func GetProfileDetails(apiKey, profileId string) (*IndividualDetails, error) {
+func GetProfileDetails(ctx context.Context, apiKey, profileId string) (*IndividualDetails, error) {
 	// Create a Graphql request
 	var graphqlRequest GraphqlRequest
 	graphqlRequest.Query = `{profile(id:"` + profileId + `",lang:"EN"){individual{family_groups(relationship_prefix:"auto"){type is_parent_family father{...family_member_fragment}mother{...family_member_fragment}siblings(include_half_siblings:true){...family_member_fragment}spouse{...family_member_fragment}children{...family_member_fragment}}event_facts(hints:3){data{...fact_fragment}}insights{confirmed_record_matches_summary{...insight_summary_fragment}consistency_issues_summary{...insight_summary_fragment}relative_hints{...hint_fragment}}map_pins{data{...map_pin_fragment}}}site_membership{...site_membership_fragment}user{surname_research}birthday_greeting{...greeting_fragment}anniversary_greeting{...greeting_fragment}}}fragment fact_fragment on Fact{id type title is_family_fact is_fact_of_relative date{text}year formatted_age formatted_place cause_of_death content additional_content individual{id}relative{...fact_relative_fragment}spouse{...fact_relative_fragment}hint{...hint_fragment}citations{data{...citation_fragment}}notes{data{...note_fragment}}media{data{name link thumbnails(thumbnail_size:"96x96c"){url}}}}fragment citation_fragment on Citation{id page confidence event{id title}family_event{id title}date{text}formatted_text page_link{url name image}source{name smart_matching_site{id}image link}extended_citation{reference comment reason}smart_matching_individual{id name}}fragment note_fragment on Note{id type text subject body}fragment family_member_fragment on Relationship{relationship_description relationship_type individual{id name gender age_group lifespan personal_photo{...personal_photo_fragment}link_in_profile_page}}fragment personal_photo_fragment on Photo{thumbnails(thumbnail_size:"136x136c"){url}}fragment fact_relative_fragment on Individual{id name gender age_group personal_photo{...personal_photo_fragment}link_in_profile_page}fragment insight_summary_fragment on InsightSummary{type status count link is_accessible fields{id label value}}fragment hint_fragment on InsightHint{factor key modifier count first_source_name image}fragment map_pin_fragment on FactMapPin{location{name point{lat lng}bounds{north_east{lat lng}south_west{lat lng}}}facts{data{id is_fact_of_relative is_family_fact title date{text}formatted_place individual{id}relative{id name}spouse{name}}}}fragment sentence_fragment on StorySentence{text tokens{type text value link}}fragment site_membership_fragment on ProfileSiteMembership{member_id member_gender site_id site_creator_id role_sentence{...sentence_fragment}visit_sentence{...sentence_fragment}join_sentence{...sentence_fragment}request_sentence{...sentence_fragment}is_current_user_member_in_site can_user_contact_member can_user_contact_site_manager can_user_promote_member_to_site_manager can_user_demote_member_from_site_manager can_user_remind_member_to_visit can_user_change_member_email_for_remind_to_visit can_user_review_membership_request review_membership_request_link can_user_remove_member_from_site can_user_identify_member_in_tree can_user_edit_member_profile edit_member_profile_link can_user_edit_member_site_preferences edit_member_site_preferences_link can_user_edit_member_privacy_preferences edit_member_privacy_preferences_link can_user_change_member_email_and_password change_member_email_and_password_link can_user_view_member_public_profile view_member_public_profile_link can_user_associate_member_in_tree other_site_memberships{data{site_name site_link role}}}fragment greeting_fragment on ProfileGreeting{type date title label link}`
@@ -199,7 +200,7 @@ func GetProfileDetails(apiKey, profileId string) (*IndividualDetails, error) {
 	}
 
 	// Create a new HTTP request
-	req, err := http.NewRequest("POST", myheritageUrl, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, myheritageUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err

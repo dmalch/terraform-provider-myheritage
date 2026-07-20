@@ -11,7 +11,7 @@ func TestGetProfileHeader(t *testing.T) {
 	RegisterTestingT(t)
 
 	profileId := "profile-760079151-1500318-0"
-	profile, err := GetProfileHeader(testApiKey, profileId)
+	profile, err := GetProfileHeader(t.Context(), testApiKey, profileId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -23,7 +23,7 @@ func TestGetProfileDetails(t *testing.T) {
 	RegisterTestingT(t)
 
 	profileId := "profile-760079151-1500318-0"
-	profile, err := GetProfileDetails(testApiKey, profileId)
+	profile, err := GetProfileDetails(t.Context(), testApiKey, profileId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())

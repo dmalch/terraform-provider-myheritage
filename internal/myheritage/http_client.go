@@ -48,10 +48,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 			return nil
 		},
 		retry.RetryIf(func(err error) bool {
-			if errors.Is(err, errCode429) {
-				return true
-			}
-			return false
+			return errors.Is(err, errCode429)
 		}),
 		retry.Attempts(3),
 		retry.Delay(2*time.Second),        // Wait 2 seconds between retries

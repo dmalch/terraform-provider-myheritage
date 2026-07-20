@@ -24,7 +24,7 @@ func NewProfileResource() resource.Resource {
 	return &Resource{}
 }
 
-// Metadata provides the resource type name
+// Metadata provides the resource type name.
 func (r *Resource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "myheritage_profile"
 }
@@ -125,7 +125,7 @@ func mediaModelObjectType() types.ObjectType {
 	}
 }
 
-// Create creates the resource
+// Create creates the resource.
 func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -143,7 +143,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-// Read reads the resource
+// Read reads the resource.
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -151,7 +151,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	profile, err := myheritage.GetProfileHeader(r.apiKey.ValueString(), state.ID.ValueString())
+	profile, err := myheritage.GetProfileHeader(ctx, r.apiKey.ValueString(), state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading profile", err.Error())
 		return
@@ -170,7 +170,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		state.Gender = types.StringValue(profile.Individual.Gender)
 	}
 
-	individualDetails, err := myheritage.GetProfileDetails(r.apiKey.ValueString(), state.ID.ValueString())
+	individualDetails, err := myheritage.GetProfileDetails(ctx, r.apiKey.ValueString(), state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading profile details", err.Error())
 		return
@@ -231,7 +231,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	// Set the event list in the state
 	state.Events = eventList
 
-	individualBiography, err := myheritage.GetIndividualBiography(r.apiKey.ValueString(), state.IndividualID.ValueString())
+	individualBiography, err := myheritage.GetIndividualBiography(ctx, r.apiKey.ValueString(), state.IndividualID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading biography details", err.Error())
 		return
@@ -295,7 +295,7 @@ func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequ
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// Update updates the resource
+// Update updates the resource.
 func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -312,7 +312,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-// Delete deletes the resource
+// Delete deletes the resource.
 func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
