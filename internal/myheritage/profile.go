@@ -140,15 +140,15 @@ type EventFact struct {
 	Individual        struct {
 		Id string `json:"id"`
 	} `json:"individual"`
-	Relative interface{} `json:"relative"`
+	Relative any `json:"relative"`
 	Spouse   *struct {
 		Id     string `json:"id"`
 		Name   string `json:"name"`
 		Gender string `json:"gender"`
 	} `json:"spouse"`
-	Hint      interface{} `json:"hint"`
+	Hint      any `json:"hint"`
 	Citations struct {
-		Data interface{} `json:"data"`
+		Data any `json:"data"`
 	} `json:"citations"`
 	Notes struct {
 		Data []Note `json:"data"`
@@ -177,13 +177,13 @@ type FamilyGroupMember struct {
 	RelationshipDescription string `json:"relationship_description"`
 	RelationshipType        string `json:"relationship_type"`
 	Individual              struct {
-		Id                string      `json:"id"`
-		Name              string      `json:"name"`
-		Gender            string      `json:"gender"`
-		AgeGroup          string      `json:"age_group"`
-		Lifespan          string      `json:"lifespan"`
-		PersonalPhoto     interface{} `json:"personal_photo"`
-		LinkInProfilePage string      `json:"link_in_profile_page"`
+		Id                string `json:"id"`
+		Name              string `json:"name"`
+		Gender            string `json:"gender"`
+		AgeGroup          string `json:"age_group"`
+		Lifespan          string `json:"lifespan"`
+		PersonalPhoto     any    `json:"personal_photo"`
+		LinkInProfilePage string `json:"link_in_profile_page"`
 	} `json:"individual"`
 }
 
