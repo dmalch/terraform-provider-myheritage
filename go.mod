@@ -1,6 +1,6 @@
 module github.com/dmalch/terraform-provider-myheritage
 
-go 1.26
+go 1.27
 
 require (
 	github.com/avast/retry-go/v4 v4.7.0
