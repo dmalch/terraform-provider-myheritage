@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/avast/retry-go/v4 v4.7.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 )
 
 require (
